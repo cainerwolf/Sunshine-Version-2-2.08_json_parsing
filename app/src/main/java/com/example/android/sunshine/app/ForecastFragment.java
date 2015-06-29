@@ -81,6 +81,18 @@ public class ForecastFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
+    public void populateWeather(String[] data) {
+        // This method will take a String array of data and use it to populate
+        // our weather listing in the main view
+
+        List<String> weekForecast = new ArrayList<String>(Arrays.asList(data));
+
+        mForecastAdapter.clear();
+        mForecastAdapter.addAll(weekForecast);
+        mForecastAdapter.notifyDataSetChanged();
+
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -212,9 +224,6 @@ public class ForecastFragment extends Fragment {
                 resultStrs[i] = day + " - " + description + " - " + highAndLow;
             }
 
-            for (String s : resultStrs) {
-                Log.v(LOG_TAG, "Forecast entry: " + s);
-            }
             return resultStrs;
 
         }
@@ -258,8 +267,6 @@ public class ForecastFragment extends Fragment {
 
                 URL url = new URL(builtUri.toString());
 
-                Log.v(LOG_TAG, "Built URI " + builtUri.toString());
-
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
@@ -288,7 +295,6 @@ public class ForecastFragment extends Fragment {
                 }
                 forecastJsonStr = buffer.toString();
 
-                Log.v(LOG_TAG, "Forecast string: " + forecastJsonStr);
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
                 // If the code didn't successfully get the weather data, there's no point in attemping
@@ -316,6 +322,11 @@ public class ForecastFragment extends Fragment {
 
             // This will only happen if there was an error getting or parsing the forecast.
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(String[] result) {
+            populateWeather(result);
         }
     }
 }
