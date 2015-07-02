@@ -17,9 +17,11 @@ package com.example.android.sunshine.app;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.text.format.Time;
 import android.util.Log;
@@ -78,8 +80,7 @@ public class ForecastFragment extends Fragment {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            FetchWeatherTask weatherTask = new FetchWeatherTask();
-            weatherTask.execute("94043");
+            updateWeather();
             return true;
         }
         if (id == R.id.action_settings) {
@@ -91,35 +92,26 @@ public class ForecastFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    public void populateWeather(String[] data) {
-        // This method will take a String array of data and use it to populate
-        // our weather listing in the main view
+    public void updateWeather() {
+        // Update the weather
 
-        List<String> weekForecast = new ArrayList<String>(Arrays.asList(data));
+        FetchWeatherTask weatherTask = new FetchWeatherTask();
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        weatherTask.execute(sharedPref.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default)));
 
-        mForecastAdapter.clear();
-        mForecastAdapter.addAll(weekForecast);
-        mForecastAdapter.notifyDataSetChanged();
+    }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        // Create some dummy data for the ListView.  Here's a sample weekly forecast
-        String[] data = {
-                "Mon 6/23 - Sunny - 31/17",
-                "Tue 6/24 - Foggy - 21/8",
-                "Wed 6/25 - Cloudy - 22/17",
-                "Thurs 6/26 - Rainy - 18/11",
-                "Fri 6/27 - Foggy - 21/10",
-                "Sat 6/28 - TRAPPED IN WEATHERSTATION - 23/18",
-                "Sun 6/29 - Sunny - 20/7"
-        };
-        List<String> weekForecast = new ArrayList<String>(Arrays.asList(data));
-
-        // Now that we have some dummy forecast data, create an ArrayAdapter.
+         // Now that we have some dummy forecast data, create an ArrayAdapter.
         // The ArrayAdapter will take data from a source (like our dummy forecast) and
         // use it to populate the ListView it's attached to.
         mForecastAdapter =
@@ -127,7 +119,7 @@ public class ForecastFragment extends Fragment {
                         getActivity(), // The current context (this activity)
                         R.layout.list_item_forecast, // The name of the layout ID.
                         R.id.list_item_forecast_textview, // The ID of the textview to populate.
-                        weekForecast);
+                        new ArrayList<String>());
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -141,8 +133,8 @@ public class ForecastFragment extends Fragment {
 
                 String forecast = mForecastAdapter.getItem(i);
 
-                Intent detailIntent = new Intent(getActivity(),DetailActivity.class)
-                        .putExtra(Intent.EXTRA_TEXT,forecast);
+                Intent detailIntent = new Intent(getActivity(), DetailActivity.class)
+                        .putExtra(Intent.EXTRA_TEXT, forecast);
 
                 startActivity(detailIntent);
 
@@ -244,6 +236,13 @@ public class ForecastFragment extends Fragment {
                 double high = temperatureObject.getDouble(OWM_MAX);
                 double low = temperatureObject.getDouble(OWM_MIN);
 
+                // If the user selected Imperial measurement, convert the temperatures into Fahrenheit
+                if ( PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(getString(R.string.pref_units_key), getString(R.string.pref_units_default)).equals("imperial") ) {
+                    high = ((high * 9.0) / 5.0) + 32.0;
+                    low = ((low * 9.0) / 5.0) + 32.0;
+                }
+
+
                 highAndLow = formatHighLows(high, low);
                 resultStrs[i] = day + " - " + description + " - " + highAndLow;
             }
@@ -290,6 +289,7 @@ public class ForecastFragment extends Fragment {
                         .build();
 
                 URL url = new URL(builtUri.toString());
+                Log.v("SUNSHINE", "URL is " + url.toString());
 
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -351,7 +351,11 @@ public class ForecastFragment extends Fragment {
         @Override
         protected void onPostExecute(String[] result) {
             if (result != null){
-                populateWeather(result);
+                List<String> weekForecast = new ArrayList<String>(Arrays.asList(result));
+
+                mForecastAdapter.clear();
+                mForecastAdapter.addAll(weekForecast);
+                mForecastAdapter.notifyDataSetChanged();
             }
 
         }
