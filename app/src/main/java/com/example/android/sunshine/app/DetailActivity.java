@@ -17,7 +17,9 @@
 package com.example.android.sunshine.app;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
@@ -60,6 +62,15 @@ public class DetailActivity extends ActionBarActivity {
             Intent intent = new Intent(getApplicationContext(),SettingsActivity.class);
             startActivity(intent);
             return true;
+        }
+
+        if (id == R.id.action_mapLocation) {
+            Uri geoLocation = Uri.parse("geo:0,0?q=" + PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(getString(R.string.pref_location_key),getString(R.string.pref_location_default)));
+            Intent intent = new Intent(Intent.ACTION_VIEW,geoLocation);
+            if (intent.resolveActivity(getApplicationContext().getPackageManager())!=null) {
+                startActivity(intent);
+                return true;
+            }
         }
 
         return super.onOptionsItemSelected(item);

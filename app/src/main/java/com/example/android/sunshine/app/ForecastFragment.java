@@ -18,6 +18,7 @@ package com.example.android.sunshine.app;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -84,10 +85,17 @@ public class ForecastFragment extends Fragment {
             return true;
         }
         if (id == R.id.action_settings) {
-            Log.v("Settings","Click is logged");
             Intent intent = new Intent(getActivity(),SettingsActivity.class);
             startActivity(intent);
             return true;
+        }
+        if (id == R.id.action_mapLocation) {
+            Uri geoLocation = Uri.parse("geo:0,0?q=" + PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(getString(R.string.pref_location_key),getString(R.string.pref_location_default)));
+            Intent intent = new Intent(Intent.ACTION_VIEW,geoLocation);
+            if (intent.resolveActivity(getActivity().getPackageManager())!=null) {
+                startActivity(intent);
+                return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
