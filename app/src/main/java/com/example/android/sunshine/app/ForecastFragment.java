@@ -82,6 +82,12 @@ public class ForecastFragment extends Fragment {
             weatherTask.execute("94043");
             return true;
         }
+        if (id == R.id.action_settings) {
+            Log.v("Settings","Click is logged");
+            Intent intent = new Intent(getActivity(),SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 

@@ -29,8 +29,6 @@ import android.widget.TextView;
 
 public class DetailActivity extends ActionBarActivity {
 
-    static String weatherText = "";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,7 +38,6 @@ public class DetailActivity extends ActionBarActivity {
                     .add(R.id.container, new PlaceholderFragment())
                     .commit();
         }
-        weatherText = getIntent().getStringExtra(Intent.EXTRA_TEXT);
     }
 
 
@@ -60,6 +57,8 @@ public class DetailActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent intent = new Intent(getApplicationContext(),SettingsActivity.class);
+            startActivity(intent);
             return true;
         }
 
@@ -81,8 +80,12 @@ public class DetailActivity extends ActionBarActivity {
             View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
             // Set the weather text
-            TextView weatherTextView = (TextView) rootView.findViewById(R.id.detailText);
-            weatherTextView.setText(weatherText);
+            Intent intent = getActivity().getIntent();
+            if (intent.hasExtra(Intent.EXTRA_TEXT) && intent != null) {
+                TextView weatherTextView = (TextView) rootView.findViewById(R.id.detailText);
+                String weatherStr = getActivity().getIntent().getStringExtra(Intent.EXTRA_TEXT);
+                weatherTextView.setText(weatherStr);
+            }
 
             return rootView;
         }
